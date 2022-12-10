@@ -251,6 +251,7 @@ def checkpoint_filter_fn(state_dict, model, args):
 
 
 def _create_vision_transformer(variant, pretrained=False, distilled=False, **kwargs):
+    
     default_cfg = default_cfgs[variant]
     default_num_classes = default_cfg['num_classes']
     default_img_size = default_cfg['input_size'][-1]
@@ -258,10 +259,12 @@ def _create_vision_transformer(variant, pretrained=False, distilled=False, **kwa
     num_classes = kwargs.pop('num_classes', default_num_classes)
     img_size = kwargs.pop('img_size', default_img_size)
     repr_size = kwargs.pop('representation_size', None)
+    print(f"_create_vision_transformer:{variant}, pretrained:{pretrained}, distilled:{distilled}, num_classes:{num_classes}, img_size:{img_size}, repr_size:{repr_size}")
     if repr_size is not None and num_classes != default_num_classes:
         # Remove representation layer if fine-tuning. This may not always be the desired action,
         # but I feel better than doing nothing by default for fine-tuning. Perhaps a better interface?
         _logger.warning("Removing representation layer for fine-tuning.")
+        print("Removing representation layer for fine-tuning.")
         repr_size = None
 
     model_cls = DistilledVisionTransformer if distilled else VisionTransformer
@@ -269,10 +272,12 @@ def _create_vision_transformer(variant, pretrained=False, distilled=False, **kwa
     model.default_cfg = default_cfg
 
     if pretrained:
+        print("load pretrained model")
         load_pretrained(
             model, num_classes=num_classes, in_chans=kwargs.get('in_chans', 3),
             filter_fn=partial(checkpoint_filter_fn, args=kwargs.pop('args'), model=model))
     else:
+        print('Training from scratch')
         _logger.warning('Training from scratch')
     return model
 
